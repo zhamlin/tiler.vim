@@ -1,0 +1,304 @@
+*tiler.txt*  Tiled window management for Vim
+
+CONTENTS *tiler-contents*
+
+Introduction        |tiler-introduction|
+Interface       |tiler-interface|
+  Commands        |tiler-commands|
+  Variables       |tiler-variables|
+  Functions       |tiler-functions|
+Examples        |tiler-examples|
+
+
+==============================================================================
+INTRODUCTION                    *tiler-introduction*
+
+*tiler* Is a tiling window manager for Vim, inspired by dwm.vim (https://github.com/spolu/dwm.vim)
+Other options exist, such as dwm.vim and golden-ratio but neither of those
+seemed to work exactly how I wanted so tiler was born.
+
+It works by maintaining a list of windows, with the master window being at the
+top. When re-ordering windows they are moved into a 'stack', which gets sorted. Then the windows
+are moved to their correct positions based on their position in the list.
+
+Differences from dwm.vim
+    1. multiple layouts,
+    2. can increase or decrease master window count on the fly,
+    3. support for popups e.g. nerdtree, tagbar, quickfix, etc,
+    4. each tab has its own settings
+
+Note:  Opening and closing windows with methods not provided by *tiler* will
+       more than likely cause the window layout to be incorrect.
+
+
+==============================================================================
+INTERFACE                   *tiler-interface*
+
+------------------------------------------------------------------------------
+COMMANDS                    *tiler-commands*
+
+:TilerFocus                 *:TilerFocus*
+        Moves current window to master window.
+
+:TilerReorder                   *:TilerReorder*
+        Creates correct window layout.
+
+:TilerClose                 *:TilerClose*
+        Closes current window correctly.
+
+:TilerNew                   *:TilerNew*
+        Opens a new window in layout.
+
+:TilerOpen [file]                   *:TilerOpen*
+        Opens a file in a new window.
+
+:TilerResize [size]                 *:TilerResize*
+        Resizes master windows size to [size]. Size is the percentage of the
+        master window(s) size relative to vims size minus all of the popups size.
+
+:TilerSwitch [layout]                   *:TilerSwitch*
+        Switches to the specified layout. See |g:tiler#layout| for list of
+        valid layouts.
+
+------------------------------------------------------------------------------
+VARIABLES                   *tiler-variables*
+
+g:tiler#layout          *g:tiler#layout*
+        Default layout for new tabs, valid layouts are 'right', 'top',
+        'left', and 'bottom'. The layout specifies where the tiled windows
+        will be placed.
+
+        'right' would be laid out as follows:
+
+        ===================================
+        |              |        S1        |
+        |              |===================
+        |      M       |        S2        |
+        |              |===================
+        |              |        S3        |
+        ===================================
+
+        Default: 'right'
+
+g:tiler#master#size     *g:#master#size*
+        The percentage of the master window(s) size relative to vims size
+        minus all of the popups size.
+
+        Default: |62|
+
+g:tiler#master#count        *g:tiler#master#count*
+        The amount of master windows.
+
+        Default: |1|
+
+g:tiler#popup#windows               *g:tiler#popup#windows*
+        A dictionary of windows to treat as popups.
+
+        Options for popups:
+            "position"      String (Required) 'top', 'bottom', 'left' or 'right'
+                    Location to place popup.
+
+            "size"      Number (Required) 1-100
+                    The percentage of the popup window size relative to vims size.
+
+            "filetype"      String
+                    The windows buffer filetype must match this to be considered a popup.
+                    Can be used with "name".
+
+            "name"      String
+                    A vim pattern that will be checked against the windows
+                    buffer name. Must match to be considered a popup.
+                    Can be used with "filetype".
+
+            "order"      Number
+                    The placement of the popup relative to other popups.
+                    1 will be moved last, putting it on top of all the other
+                    popups. See EXAMPLES for a picture.
+
+        Default: {}
+
+------------------------------------------------------------------------------
+FUNCTIONS                   *tiler-functions*
+
+tiler#new_window()               *tiler#new_window()*
+        Opens a new window. This is a function version of |:TilerNew|.
+
+tiler#close_window()               *tiler#close_window()*
+        Closes current window. This is a function version of |:TilerClose|.
+
+tiler#reorder()               *tiler#reorder()*
+        Creates correct window layout. this is a function version of
+        |:TilerReorder|.
+
+tiler#get_layout()              *tiler#get_layout()*
+        Returns the current |layout|.
+
+tiler#get_master_count()                *tiler#get_master_count()*
+        Returns the number of master windows in the current layout.
+
+tiler#get_master_size()     *tiler#get_master_size()*
+        Returns the current size of the master window(s).
+
+tiler#zoom()        *tiler#zoom()*
+        Moves current seelcted window to a new tab, effectively 'zooming' in
+        on it. If already zoomed in, it will zoom out.
+
+tiler#rotate_backwards()        *tiler#rotate_backwards()*
+        Moves all windows counter-clockwise in the layout.
+
+tiler#rotate_forwards()        *tiler#rotate_forwards()*
+        Moves all windows clockwise in the layout.
+
+tiler#switch_layout({layout})        *tiler#switch_layout()*
+        Switches the current layout to {layout}.
+        This is a function version of |:TilerSwitch|.
+
+        "layout"      String (Required)
+                Which layout to switch to. See |g:tiler#layout| for
+                a list of layouts.
+
+tiler#resize_master({size})        *tiler#resize_master()*
+        Sets the master window(s) size.
+        This is a function version of |:TilerResize|.
+
+        "size"      Number (Required) 1-100
+                The new size of the master windows(s).
+
+tiler#open({file})        *tiler#open()*
+        Opens {file} in a new window.
+        This is a function version of |:TilerOpen|.
+
+        "file"      String (Required)
+                Name of the file to open in the new window.
+
+tiler#update_master_count({size})                *tiler#update_master_count()*
+        Changes the master count, by {size}.
+
+        "size"      Number (Required)
+                The number to add or subtract from the current
+                master count.
+
+tiler#rotate_layout({dir})               *tiler#rotate_layout()*
+        Changes the layout, either forwards or backwards.
+        See |g:tiler#layout| the order of the layouts.
+
+        "dir"      Number (Required)
+                1 would move forwards in the layout order, and -1
+                backwards.
+
+
+------------------------------------------------------------------------------
+MAPPINGS                   *tiler-mappings*
+
+ ---------------------------------+------------------------------------------
+ Mapping                          | Description                              ~
+ ---------------------------------+------------------------------------------
+ <plug>TilerNew                   | calls |tiler#new_window()|
+ <plug>TilerClose                 | calls |tiler#close_window()|
+ <plug>TilerZoom                  | calls |tiler#zoom()|
+ <plug>TilerAddMaster             | calls |tiler#update_master_count(1)|
+ <plug>TilerDelMaster             | calls |tiler#update_master_count(-1)|
+ <plug>TilerRotateLayoutL         | calls |tiler#rotate_layout(-1)|
+ <plug>TilerRotateLayoutR         | calls |tiler#rotate_layout(1)|
+ <plug>TilerRotateBackwards       | calls |tiler#rotate_backwards()|
+ <plug>TilerRotateForwards        | calls |tiler#rotate_forwards()|
+----------------------------------+-----------------------------------------
+
+
+==============================================================================
+EXAMPLES                    *tiler-examples*
+>
+Some useful keybindings:
+    >
+    nmap <C-W>n <plug>TilerNew
+    nmap <C-W>s <plug>TilerNew
+    nmap <C-W>v <plug>TilerNew
+    nmap <C-W>c <plug>TilerClose
+    nmap <C-W>. <plug>TilerRotateForwards
+    nmap <C-W>, <plug>TilerRotateBackwards
+
+    nmap <C-w><space> <Plug>TilerZoom
+    nmap <C-Space> <Plug>TilerFocus
+
+    nmap <C-W>k <Plug>TilerAddMaster
+    nmap <C-W>j <Plug>TilerDelMaster
+    nmap <C-W>l <Plug>TilerRotateLayoutR
+    nmap <C-W>h <Plug>TilerRotateLayoutL
+
+    " not specific to tiler, but useful for window navigation.
+    nmap <C-J> :wincmd j<CR>
+    nmap <C-k> :wincmd k<CR>
+    nmap <C-l> :wincmd l<CR>
+    nmap <C-h> :wincmd h<CR>
+
+
+Add current layout to status bar:
+>
+    set statusline+=%{tiler#get_layout()}
+
+
+Set defaults:
+>
+    let g:tiler#master#size = 50
+    let g:tiler#master#count = 2
+    let g:tiler#layout = 'left'
+<
+
+Set up some popup windows:
+>
+    let g:tiler#popup#windows = {
+    \    'quickfix': { 'position': 'bottom', 'size': 10, 'filetype': 'qf', 'order': 3 },
+    \    'nerdtree': { 'position': 'left', 'size': 10, 'filetype': 'nerdtree', 'order': 2 },
+    \    'tagbar': { 'position': 'right', 'size': 10, 'filetype': 'tagbar', 'order': 1 },
+    \ }
+
+    the example above would be displayed as:
+     __________________________________________________________
+    |          |                     |                |        |
+    | nerdtree |                     |  win           | tagbar |
+    |          |      master         |                |        |
+    |          |                     |                |        |
+    |          |                     |----------------|        |
+    |          |                     |  win           |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |----------------|        |
+    |          |                     |  win           |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |--------------------------------------|        |
+    |          |                                      |        |
+    |          |               quickfix               |        |
+    |          |                                      |        |
+    |__________|______________________________________|________|
+
+    let g:tiler#popup#windows = {
+    \    'quickfix': { 'position': 'bottom', 'size': 10, 'filetype': 'qf', 'order': 1 },
+    \    'nerdtree': { 'position': 'left', 'size': 10, 'filetype': 'nerdtree', 'order': 2 },
+    \    'tagbar': { 'position': 'right', 'size': 10, 'filetype': 'tagbar', 'order': 3 },
+    \ }
+
+    and the example above would be displayed as:
+     __________________________________________________________
+    |          |                     |                |        |
+    | nerdtree |                     |  win           | tagbar |
+    |          |      master         |                |        |
+    |          |                     |                |        |
+    |          |                     |----------------|        |
+    |          |                     |  win           |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |----------------|        |
+    |          |                     |  win           |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |          |                     |                |        |
+    |----------------------------------------------------------|
+    |                                                          |
+    |                          quickfix                        |
+    |                                                          |
+    |__________________________________________________________|
+<
