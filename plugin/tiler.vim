@@ -29,6 +29,7 @@ endif
 
 let s:popup_is_vertical = { 'left': 1, 'right': 1, 'top': 0, 'bottom': 0 }
 let s:popup_directions  = { 'right': 'L', 'left': 'H', 'top': 'K', 'bottom': 'J' }
+let s:saved_popups = {}
 
 let s:tile_layouts_master = { 'right': 'H', 'left': 'L', 'top': 'J', 'bottom': 'K' }
 let s:tile_layouts_stack  = { 'right': 'K', 'left': 'J', 'top': 'L', 'bottom': 'H' }
@@ -53,6 +54,11 @@ function! s:winmaxheight()
         let l:height -= 1
     endif
     return l:height
+endfunction
+
+function! s:window_close(win)
+    execute printf('silent %d wincmd w', a:win)
+    close
 endfunction
 
 function! s:window_move(dir, ...)
@@ -80,6 +86,18 @@ endfunction
 
 function! s:sort_popups(a, b)
     return get(a:a.vars, 'order', 0) < get(a:b.vars, 'order', 0)
+endfunction
+
+function! s:get_saved_popups()
+    let l:current_tab = tabpagenr()
+    if empty(get(s:saved_popups, l:current_tab))
+        let s:saved_popups[l:current_tab] = []
+    endif
+    return s:saved_popups[l:current_tab]
+endfunction
+
+function! s:set_saved_popups(popups)
+    let s:saved_popups[tabpagenr()] = a:popups
 endfunction
 
 function! s:find_popups()
@@ -266,6 +284,17 @@ function! tiler#reorder()
 
     let l:currwin = win_getid()
     call tiler#stack_windows()
+
+    let l:new_popups = filter(copy(l:popups), 'index(s:get_saved_popups(), v:val) < 0 && get(v:val.vars, "replace", 0)')
+    for popup in l:new_popups
+        let l:popups_to_close = filter(copy(l:popups), 'v:val != popup && get(v:val.vars, "replace", 0) && popup.vars.position ==# v:val.vars.position')
+        for win in map(l:popups_to_close, 'win_id2win(v:val.id)')
+            call s:window_close(win)
+        endfor
+    endfor
+
+    let l:popups = s:find_popups()
+    call s:set_saved_popups(l:popups)
 
     let l:current_layout = s:get_current_layout()
     " move popup windows to bottom of stack and remove from list of current windows

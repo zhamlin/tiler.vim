@@ -115,6 +115,10 @@ g:tiler#popup#windows               *g:tiler#popup#windows*
                     1 will be moved last, putting it on top of all the other
                     popups. See EXAMPLES for a picture.
 
+            "replace"    Number 0 or 1
+                    Popup will be replaced by another popup when both
+                    'replace' and 'position' are the same for both popups.
+
         Default: {}
 
 ------------------------------------------------------------------------------
