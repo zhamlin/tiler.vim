@@ -9,6 +9,8 @@ Tiling window manger for Vim
 
 See the help file for more information.
 
+![example](https://user-images.githubusercontent.com/1034743/31067325-e97fe69e-a717-11e7-8663-bd67a80c5312.gif)
+
 # Install
 Using vim-plug:
 
