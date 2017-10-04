@@ -20,12 +20,12 @@ Plug 'zhamlin/tiler.vim'
 
 # Commands
 
-| Command              | List                                                                    |
-| ---                  | ---                                                                     |
-| `TilerFocus`         | Moves current window to master window                                   |
-| `TileReorder`        | Creates the correct window layout                                       |
-| `TileClose`          | Closes current window                                                   |
-| `TileNew`            | Opens a new window                                                      |
-| `TileOpen [FILE]`    | Opens a file in a new window                                            |
-| `TileResize [SIZE]`  | Resizes master window to [SIZE]                                         |
-| `TileSwitch [LAYOUT]`| Switches the current layout to [LAYOUT]                                 |
+| Command               | List                                                                   |
+| ---                   | ---                                                                    |
+| `TilerFocus`          | Moves current window to master window                                  |
+| `TilerReorder`        | Creates the correct window layout                                      |
+| `TilerClose`          | Closes current window                                                  |
+| `TilerNew`            | Opens a new window                                                     |
+| `TilerOpen [FILE]`    | Opens a file in a new window                                           |
+| `TilerResize [SIZE]`  | Resizes master window to [SIZE]                                        |
+| `TilerSwitch [LAYOUT]`| Switches the current layout to [LAYOUT]                                |
