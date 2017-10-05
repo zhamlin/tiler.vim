@@ -240,6 +240,10 @@ function! tiler#stack_windows() abort
 endfunction
 
 function! s:swap_buffers(a, b)
+    let s:hidden_status = &hidden
+    " turn on hidden, needed for swapping unsaved buffers around
+    set hidden
+
     let l:abuf = winbufnr(a:a)
     let l:bbuf = winbufnr(a:b)
 
@@ -247,6 +251,11 @@ function! s:swap_buffers(a, b)
     execute 'b ' . l:bbuf
     execute a:b . 'wincmd w'
     execute 'b ' . l:abuf
+
+    " restore users hidden status
+    if !s:hidden_status
+        set nohidden
+    endif
 endfunction
 
 " make sure tile_order is correct, when another window opened without calling TilerNew
