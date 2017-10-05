@@ -259,9 +259,10 @@ function! s:verify_tile_order(popups)
     call s:set_master_layout(filter(l:window_layout, 'v:val != 0'))
 endfunction
 
-function! tiler#close_window()
-    call s:set_master_layout(filter(s:get_master_layout(), 'v:val != win_getid()'))
+function! tiler#close_window() abort
+    let s:winid = win_getid()
     close
+    call s:set_master_layout(filter(s:get_master_layout(), 'v:val != s:winid'))
     call tiler#reorder()
 endfunction
 
@@ -284,6 +285,10 @@ function! tiler#reorder()
         return
     endif
     let s:reordering = 1
+
+    let s:hidden_status = &hidden
+    " turn on hidden, needed for swapping unsaved buffers around
+    set hidden
 
     let l:popups = s:find_popups()
     call s:verify_tile_order(l:popups)
@@ -378,6 +383,11 @@ function! tiler#reorder()
 
     call s:set_master_layout(l:window_layout)
     call s:resize_master()
+
+    " restore users hidden status
+    if !s:hidden_status
+        set nohidden
+    endif
     let s:reordering = 0
 endfunction
 
