@@ -50,7 +50,7 @@ function! s:winmaxheight()
     let l:height = &lines - &cmdheight
 
     " subtract one from height if tabbar is visible
-    if len(gettabinfo()) > 1 && &showtabline
+    if tabpagenr('$') > 1 && &showtabline
         let l:height -= 1
     endif
 
