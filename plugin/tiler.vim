@@ -45,14 +45,20 @@ let s:window_layout = {}
 let s:master_count = {}
 let s:master_size = {}
 
-" returns max height of a window: lines minus cmdheight, tabbar, and statusline
+" returns max height of a window
 function! s:winmaxheight()
-    let l:height = &lines - &cmdheight - 1
+    let l:height = &lines - &cmdheight
 
     " subtract one from height if tabbar is visible
     if len(gettabinfo()) > 1 && &showtabline
         let l:height -= 1
     endif
+
+    " subtract one from height if statusline is visible
+    if &laststatus > 0
+        let l:height -= 1
+    endif
+
     return l:height
 endfunction
 
