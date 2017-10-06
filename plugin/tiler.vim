@@ -55,7 +55,7 @@ function! s:winmaxheight()
     endif
 
     " subtract one from height if statusline is visible
-    if &laststatus > 0
+    if (winnr('$') > 1 && &laststatus) || &laststatus > 1
         let l:height -= 1
     endif
 
