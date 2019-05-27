@@ -106,6 +106,23 @@ function! s:set_saved_popups(popups)
     let s:saved_popups[tabpagenr()] = a:popups
 endfunction
 
+function! s:match_popup(name, filetype)
+    for [l:name, l:window] in items(g:tiler#popup#windows)
+        if has_key(l:window, 'filetype') && l:window.filetype !=# a:filetype
+            continue
+        endif
+        " if has_key(l:window, 'name')
+        "     echom printf('%s -> %s == %s', l:window.name, l:bufname, len(matchstr(l:bufname, l:window.name)))
+        " endif
+        if has_key(l:window, 'name') && !len(matchstr(a:name, l:window.name))
+            continue
+        endif
+
+        return { "name": l:name, "window": l:window}
+    endfor
+    return 0
+endfunction
+
 function! s:find_popups()
     let l:popups = []
 
@@ -114,17 +131,17 @@ function! s:find_popups()
         let l:bufname = bufname(l:buf + 0)
         let l:filetype = getbufvar(l:buf, "&filetype")
 
-        for [l:name, l:window] in items(g:tiler#popup#windows)
-            if has_key(l:window, 'filetype') && l:window.filetype !=# l:filetype
-                continue
-            endif
-            if has_key(l:window, 'name') && !len(matchstr(l:bufname, l:window.name))
-                continue
-            endif
-            let l:popups = add(l:popups, { 'vars': l:window, 'id': win_getid(i) })
-        endfor
+        let l:popup_info = s:match_popup(l:bufname, l:filetype)
+        if !empty(l:popup_info)
+            let l:popups = add(l:popups, { 'vars': l:popup_info.window, 'id': win_getid(i) })
+        endif
     endfor
 
+    " set mapping for popups
+    for popup in l:popups
+        execute printf('%d wincmd w', win_id2win(popup.id))
+        nmap <silent><buffer> <ESC><ESC> :close<CR>
+    endfor
     " sort to keep popup locations consistent
     return sort(l:popups, 's:sort_popups')
 endfunction
@@ -273,6 +290,7 @@ function! tiler#close_window() abort
     close
     call s:set_master_layout(filter(s:get_master_layout(), 'v:val != s:winid'))
     call tiler#reorder()
+    call tiler#select_master()
 endfunction
 
 function! tiler#create_window()
@@ -286,6 +304,26 @@ endfunction
 
 function! s:get_current_layout()
     return map(range(1, winnr('$')), 'win_getid(v:val)')
+endfunction
+
+function! tiler#select_master()
+    execute printf('%d wincmd w', s:get_master())
+endfunction
+
+function! s:save_views()
+    let l:windows = s:get_current_layout()
+    for id in l:windows
+        echom printf("current: %s", id)
+    endfor
+
+    let l:windows = s:get_master_layout()()
+    for id in l:windows
+        echom printf("master: %s", id)
+    endfor
+endfunction
+
+function! s:restore_views()
+
 endfunction
 
 function! tiler#reorder()
@@ -384,12 +422,19 @@ function! tiler#reorder()
     endfor
 
     " set every windows size correctly
+    wincmd =
     for popup in l:popups
         call s:window_resize_percentage(popup.vars.size, s:popup_is_vertical[popup.vars.position], win_id2win(popup.id))
     endfor
-    wincmd =
-    execute printf('%d wincmd w', win_id2win(l:currwin))
 
+    " don't select popup
+    " if len(filter(l:popups, 'v:val.id == l:currwin')) == 1
+    "     execute printf('%d wincmd w', s:get_master())
+    " else
+    "     execute printf('%d wincmd w', win_id2win(l:currwin))
+    " endif
+
+    execute printf('%d wincmd w', win_id2win(l:currwin))
     call s:set_master_layout(l:window_layout)
     call s:resize_master()
 
@@ -398,6 +443,7 @@ function! tiler#reorder()
         set nohidden
     endif
     let s:reordering = 0
+    redraw!
 endfunction
 
 function! tiler#open(file)
@@ -499,10 +545,52 @@ function! tiler#get_layout()
     return s:get_tab_layout()
 endfunction
 
+function! tiler#match_popup(name, filetype)
+    return s:match_popup(a:name, a:filetype)
+endfunction
+
+function! tiler#get_popups()
+    return s:get_saved_popups()
+endfunction
+
 function! tiler#focus()
     call s:swap_buffers(s:get_master(), winnr())
     execute printf('%d wincmd w', s:get_master())
     call s:resize_master()
+endfunction
+
+function! tiler#resize_popup(size)
+    let l:sym = a:size[0]
+    let l:popups = tiler#get_popups()
+
+    let l:winid = win_getid()
+    let l:popup = filter(copy(l:popups), {n, p -> p.id == l:winid})
+
+    if !empty(l:popup)
+        let l:popup = l:popup[0]
+        let l:sym = a:size[0]
+        let l:size = a:size
+
+        if l:sym ==# "+"
+            let l:size = popup.vars.size + a:size[1:]
+        elseif l:sym ==# "-"
+            let l:size = popup.vars.size - a:size[1:]
+        endif
+
+        let popup.vars.size = l:size
+        call s:set_saved_popups(l:popups)
+        call tiler#reorder()
+        return 1
+    endif
+    for popup in l:popups
+        if popup.id == l:winid
+            let popup.vars.size = a:size
+            call s:set_saved_popups(l:popups)
+            call tiler#reorder()
+            return 1
+        endif
+    endfor
+    return 0
 endfunction
 
 function! s:list_layouts(A,L,P)
@@ -522,6 +610,7 @@ nnoremap <silent> <Plug>TilerZoom :call tiler#zoom()<CR>
 
 command! -nargs=1 -complete=file TilerOpen call tiler#open(<q-args>)
 command! -nargs=1 TilerResize call tiler#resize_master(<q-args>)
+command! -nargs=1 TilerResizeP call tiler#resize_popup(<q-args>)
 command! -nargs=1 -complete=customlist,s:list_layouts TilerSwitch  call tiler#switch_layout(<q-args>)
 command! TilerFocus call tiler#focus()
 command! TilerNew call tiler#create_window()
