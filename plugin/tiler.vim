@@ -68,26 +68,26 @@ function! s:window_close(win)
 endfunction
 
 function! s:window_move(dir, ...)
-    let a:winnum = get(a:, 1, winnr())
-    execute printf('silent %d wincmd w', a:winnum)
+    let l:winnum = get(a:, 1, winnr())
+    execute printf('silent %d wincmd w', l:winnum)
     execute printf('silent wincmd %s', a:dir)
 endfunction
 
 function! s:window_resize(size, is_vertical, ...)
-    let a:winnum = get(a:, 1, winnr())
+    let l:winnum = get(a:, 1, winnr())
     let l:command = a:is_vertical ? 'vertical' : ''
 
-    execute printf('silent %d wincmd w', a:winnum)
+    execute printf('silent %d wincmd w', l:winnum)
     execute printf('silent %s resize %d', l:command, a:size)
 endfunction
 
 function! s:window_resize_percentage(size, is_vertical, ...)
-    let a:winnum = get(a:, 1, winnr())
+    let l:winnum = get(a:, 1, winnr())
     let l:size = s:winmaxheight() * (a:size * 0.01)
     if a:is_vertical
         let l:size = &columns * (a:size * 0.01)
     endif
-    call s:window_resize(float2nr(l:size), a:is_vertical, a:winnum)
+    call s:window_resize(float2nr(l:size), a:is_vertical, l:winnum)
 endfunction
 
 function! s:sort_popups(a, b)
