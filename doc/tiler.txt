@@ -13,7 +13,7 @@ Examples        |tiler-examples|
 ==============================================================================
 INTRODUCTION                    *tiler-introduction*
 
-*tiler* Is a tiling window manager for Vim, inspired by dwm.vim (https://github.com/spolu/dwm.vim)
+tiler Is a tiling window manager for Vim, inspired by dwm.vim (https://github.com/spolu/dwm.vim)
 Other options exist, such as dwm.vim and golden-ratio but neither of those
 seemed to work exactly how I wanted so tiler was born.
 
@@ -27,7 +27,7 @@ Differences from dwm.vim
     3. support for popups e.g. nerdtree, tagbar, quickfix, etc,
     4. each tab has its own settings
 
-Note:  Opening and closing windows with methods not provided by *tiler* will
+Note:  Opening and closing windows with methods not provided by tiler will
        more than likely cause the window layout to be incorrect.
 
 
